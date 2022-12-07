@@ -22,12 +22,15 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
+
 import java.util.Optional;
-import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import tg.bot.admin.panel.data.entity.Principal;
+import tg.bot.admin.panel.views.util.ColumnNames;
+import tg.bot.core.domain.Principal;
 import tg.bot.admin.panel.data.service.PrincipalService;
 import tg.bot.admin.panel.views.MainLayout;
 
@@ -69,19 +72,26 @@ public class PrincipalView extends Div implements BeforeEnterObserver {
         add(splitLayout);
 
         // Configure Grid
-        grid.addColumn("username").setAutoWidth(true);
-        grid.addColumn("password").setAutoWidth(true);
+        grid.addColumn(Principal::getId)
+                .setHeader(ColumnNames.ID)
+                .setAutoWidth(true);
+        grid.addColumn(Principal::getUsername)
+                .setHeader(ColumnNames.USERNAME)
+                .setAutoWidth(true);
+        grid.addColumn(Principal::getPassword)
+                .setHeader(ColumnNames.PASSWORD)
+                .setAutoWidth(true);
         LitRenderer<Principal> isActiveRenderer = LitRenderer.<Principal>of(
-                "<vaadin-icon icon='vaadin:${item.icon}' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: ${item.color};'></vaadin-icon>")
-                .withProperty("icon", isActive -> isActive.isIsActive() ? "check" : "minus").withProperty("color",
-                        isActive -> isActive.isIsActive()
+                        "<vaadin-icon icon='vaadin:${item.icon}' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: ${item.color};'></vaadin-icon>")
+                .withProperty("icon", isActive -> isActive.getIsActive() ? "check" : "minus").withProperty("color",
+                        isActive -> isActive.getIsActive()
                                 ? "var(--lumo-primary-text-color)"
                                 : "var(--lumo-disabled-text-color)");
 
         grid.addColumn(isActiveRenderer).setHeader("Is Active").setAutoWidth(true);
 
         grid.setItems(query -> principalService.list(
-                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
+                        PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
@@ -127,7 +137,7 @@ public class PrincipalView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UUID> principalId = event.getRouteParameters().get(PRINCIPAL_ID).map(UUID::fromString);
+        Optional<Long> principalId = event.getRouteParameters().get(PRINCIPAL_ID).map(Long::parseLong);
         if (principalId.isPresent()) {
             Optional<Principal> principalFromBackend = principalService.get(principalId.get());
             if (principalFromBackend.isPresent()) {

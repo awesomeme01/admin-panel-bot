@@ -1,12 +1,12 @@
 package tg.bot.admin.panel.data.service;
 
 import java.util.Optional;
-import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import tg.bot.admin.panel.data.entity.Booking;
+import tg.bot.core.domain.Booking;
+import tg.bot.core.repository.BookingRepository;
 
 @Service
 public class BookingService {
@@ -18,7 +18,7 @@ public class BookingService {
         this.repository = repository;
     }
 
-    public Optional<Booking> get(UUID id) {
+    public Optional<Booking> get(Long id) {
         return repository.findById(id);
     }
 
@@ -26,7 +26,7 @@ public class BookingService {
         return repository.save(entity);
     }
 
-    public void delete(UUID id) {
+    public void delete(Long id) {
         repository.deleteById(id);
     }
 

@@ -19,11 +19,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import java.util.Optional;
-import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import tg.bot.admin.panel.data.entity.PrincipalRole;
+import tg.bot.admin.panel.views.util.ColumnNames;
+import tg.bot.core.domain.PrincipalRole;
 import tg.bot.admin.panel.data.service.PrincipalRoleService;
 import tg.bot.admin.panel.views.MainLayout;
 
@@ -63,8 +64,11 @@ public class PrincipalRoleView extends Div implements BeforeEnterObserver {
         add(splitLayout);
 
         // Configure Grid
-        grid.addColumn("role").setAutoWidth(true);
-        grid.addColumn("principal").setAutoWidth(true);
+        grid.addColumn(PrincipalRole::getRole)
+                .setHeader(ColumnNames.NAME)
+                .setAutoWidth(true);
+        grid.addColumn(pr -> pr.getPrincipal().getUsername())
+                .setAutoWidth(true);
         grid.setItems(query -> principalRoleService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream());
@@ -112,7 +116,7 @@ public class PrincipalRoleView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UUID> principalRoleId = event.getRouteParameters().get(PRINCIPALROLE_ID).map(UUID::fromString);
+        Optional<Long> principalRoleId = event.getRouteParameters().get(PRINCIPALROLE_ID).map(Long::parseLong);
         if (principalRoleId.isPresent()) {
             Optional<PrincipalRole> principalRoleFromBackend = principalRoleService.get(principalRoleId.get());
             if (principalRoleFromBackend.isPresent()) {

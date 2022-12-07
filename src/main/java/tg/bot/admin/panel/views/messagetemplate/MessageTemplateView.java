@@ -19,11 +19,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import java.util.Optional;
-import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import tg.bot.admin.panel.data.entity.MessageResponseTemplate;
+import tg.bot.admin.panel.views.util.ColumnNames;
+import tg.bot.domain.entity.MessageResponseTemplate;
 import tg.bot.admin.panel.data.service.MessageResponseTemplateService;
 import tg.bot.admin.panel.views.MainLayout;
 
@@ -66,11 +67,21 @@ public class MessageTemplateView extends Div implements BeforeEnterObserver {
         add(splitLayout);
 
         // Configure Grid
-        grid.addColumn("message").setAutoWidth(true);
-        grid.addColumn("botRequestUrl").setAutoWidth(true);
-        grid.addColumn("response").setAutoWidth(true);
-        grid.addColumn("lang").setAutoWidth(true);
-        grid.addColumn("pattern").setAutoWidth(true);
+        grid.addColumn(MessageResponseTemplate::getMessage)
+                .setHeader(ColumnNames.MESSAGE)
+                .setAutoWidth(true);
+        grid.addColumn(MessageResponseTemplate::getBotRequestUrl)
+                .setHeader(ColumnNames.BOT_REQUEST_URL)
+                .setAutoWidth(true);
+        grid.addColumn(MessageResponseTemplate::getResponse)
+                .setHeader(ColumnNames.RESPONSE)
+                .setAutoWidth(true);
+        grid.addColumn(MessageResponseTemplate::getLang)
+                .setHeader(ColumnNames.LANG)
+                .setAutoWidth(true);
+        grid.addColumn(MessageResponseTemplate::getPattern)
+                .setHeader(ColumnNames.PATERN)
+                .setAutoWidth(true);
         grid.setItems(query -> messageResponseTemplateService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream());
@@ -119,8 +130,8 @@ public class MessageTemplateView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UUID> messageResponseTemplateId = event.getRouteParameters().get(MESSAGERESPONSETEMPLATE_ID)
-                .map(UUID::fromString);
+        Optional<Long> messageResponseTemplateId = event.getRouteParameters().get(MESSAGERESPONSETEMPLATE_ID)
+                .map(Long::parseLong);
         if (messageResponseTemplateId.isPresent()) {
             Optional<MessageResponseTemplate> messageResponseTemplateFromBackend = messageResponseTemplateService
                     .get(messageResponseTemplateId.get());

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import tg.bot.core.domain.base.AbstractAuditableEntity;
 
 import java.time.LocalDate;
 import javax.persistence.Column;
@@ -17,7 +18,7 @@ import javax.validation.constraints.Email;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Client extends AbstractEntity {
+public class Client extends AbstractAuditableEntity {
 
     @Column(name = "name")
     private String firstName;

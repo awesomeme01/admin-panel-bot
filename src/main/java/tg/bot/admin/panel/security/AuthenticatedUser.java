@@ -10,8 +10,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Component;
-import tg.bot.admin.panel.data.entity.User;
-import tg.bot.admin.panel.data.service.UserRepository;
+import tg.bot.core.domain.User;
+import tg.bot.core.repository.UserRepository;
 
 @Component
 public class AuthenticatedUser {

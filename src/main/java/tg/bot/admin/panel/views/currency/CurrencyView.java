@@ -20,13 +20,15 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import java.util.Optional;
-import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import tg.bot.admin.panel.data.entity.Currency;
+import tg.bot.admin.panel.views.util.ColumnNames;
+import tg.bot.core.domain.Currency;
 import tg.bot.admin.panel.data.service.CurrencyService;
 import tg.bot.admin.panel.views.MainLayout;
+import tg.bot.core.domain.base.AbstractAuditableEntity;
 
 @PageTitle("Currency")
 @Route(value = "currency/:currencyID?/:action?(edit)", layout = MainLayout.class)
@@ -66,10 +68,22 @@ public class CurrencyView extends Div implements BeforeEnterObserver {
         add(splitLayout);
 
         // Configure Grid
-        grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("code").setAutoWidth(true);
-        grid.addColumn("type").setAutoWidth(true);
-        grid.addColumn("amountInUsd").setAutoWidth(true);
+        grid.addColumn(AbstractAuditableEntity::getId)
+                .setHeader(ColumnNames.ID)
+                .setAutoWidth(true);
+        grid.addColumn(Currency::getName)
+                .setHeader(ColumnNames.NAME)
+                .setAutoWidth(true);
+        grid.addColumn(Currency::getCode)
+                .setHeader(ColumnNames.CODE)
+                .setAutoWidth(true);
+        grid.addColumn(Currency::getType)
+                .setHeader(ColumnNames.TYPE)
+                .setAutoWidth(true);
+        grid.addColumn(Currency::getAmountInUsd)
+                .setHeader(ColumnNames.AMOUNT_IN_USD)
+                .setAutoWidth(true);
+        grid.addColumn(AbstractAuditableEntity::getDateCreated).setAutoWidth(true);
         grid.setItems(query -> currencyService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream());
@@ -119,7 +133,7 @@ public class CurrencyView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UUID> currencyId = event.getRouteParameters().get(CURRENCY_ID).map(UUID::fromString);
+        Optional<Long> currencyId = event.getRouteParameters().get(CURRENCY_ID).map(Long::parseLong);
         if (currencyId.isPresent()) {
             Optional<Currency> currencyFromBackend = currencyService.get(currencyId.get());
             if (currencyFromBackend.isPresent()) {

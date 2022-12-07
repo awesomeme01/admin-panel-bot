@@ -24,11 +24,13 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import java.util.Optional;
-import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import tg.bot.admin.panel.data.entity.MessageKeyboard;
+import tg.bot.admin.panel.views.util.ColumnNames;
+import tg.bot.admin.panel.views.util.DefaultValueProviders;
+import tg.bot.domain.entity.MessageKeyboard;
 import tg.bot.admin.panel.data.service.MessageKeyboardService;
 import tg.bot.admin.panel.views.MainLayout;
 
@@ -71,13 +73,20 @@ public class MessageKeyboardView extends Div implements BeforeEnterObserver {
         add(splitLayout);
 
         // Configure Grid
-        grid.addColumn("templateId").setAutoWidth(true);
-        grid.addColumn("version").setAutoWidth(true);
-        grid.addColumn("buttons").setAutoWidth(true);
+        grid.addColumn(m -> m.getMessageResponseTemplate().getId())
+                .setHeader("Template ID")
+                .setAutoWidth(true);
+        grid.addColumn(MessageKeyboard::getVersion)
+                .setHeader(ColumnNames.VERSION)
+                .setAutoWidth(true);
+        grid.addColumn(keyboard -> DefaultValueProviders.buttonNamesCombine(keyboard.getButtons()))
+                .setHeader(ColumnNames.BUTTONS)
+                .setAutoWidth(true);
+
         LitRenderer<MessageKeyboard> isActiveRenderer = LitRenderer.<MessageKeyboard>of(
                 "<vaadin-icon icon='vaadin:${item.icon}' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: ${item.color};'></vaadin-icon>")
-                .withProperty("icon", isActive -> isActive.isIsActive() ? "check" : "minus").withProperty("color",
-                        isActive -> isActive.isIsActive()
+                .withProperty("icon", isActive -> isActive.getIsActive() ? "check" : "minus").withProperty("color",
+                        isActive -> isActive.getIsActive()
                                 ? "var(--lumo-primary-text-color)"
                                 : "var(--lumo-disabled-text-color)");
 
@@ -132,7 +141,7 @@ public class MessageKeyboardView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UUID> messageKeyboardId = event.getRouteParameters().get(MESSAGEKEYBOARD_ID).map(UUID::fromString);
+        Optional<Long> messageKeyboardId = event.getRouteParameters().get(MESSAGEKEYBOARD_ID).map(Long::parseLong);
         if (messageKeyboardId.isPresent()) {
             Optional<MessageKeyboard> messageKeyboardFromBackend = messageKeyboardService.get(messageKeyboardId.get());
             if (messageKeyboardFromBackend.isPresent()) {

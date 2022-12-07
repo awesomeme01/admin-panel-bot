@@ -20,11 +20,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import java.util.Optional;
-import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import tg.bot.admin.panel.data.entity.Payment;
+import tg.bot.admin.panel.views.util.ColumnNames;
+import tg.bot.core.domain.Payment;
 import tg.bot.admin.panel.data.service.PaymentService;
 import tg.bot.admin.panel.views.MainLayout;
 
@@ -66,10 +67,18 @@ public class PaymentsView extends Div implements BeforeEnterObserver {
         add(splitLayout);
 
         // Configure Grid
-        grid.addColumn("user").setAutoWidth(true);
-        grid.addColumn("orderId").setAutoWidth(true);
-        grid.addColumn("amount").setAutoWidth(true);
-        grid.addColumn("currency").setAutoWidth(true);
+        grid.addColumn(c -> c.getUser().getName())
+                .setHeader(ColumnNames.NAME)
+                .setAutoWidth(true);
+        grid.addColumn(c -> c.getOrder().getId())
+                .setHeader(ColumnNames.ORDER_ID)
+                .setAutoWidth(true);
+        grid.addColumn(Payment::getAmount)
+                .setHeader(ColumnNames.AMOUNT)
+                .setAutoWidth(true);
+        grid.addColumn(c -> c.getCurrency().getCode())
+                .setHeader(ColumnNames.CURRENCY)
+                .setAutoWidth(true);
         grid.setItems(query -> paymentService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream());
@@ -120,7 +129,7 @@ public class PaymentsView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UUID> paymentId = event.getRouteParameters().get(PAYMENT_ID).map(UUID::fromString);
+        Optional<Long> paymentId = event.getRouteParameters().get(PAYMENT_ID).map(Long::parseLong);
         if (paymentId.isPresent()) {
             Optional<Payment> paymentFromBackend = paymentService.get(paymentId.get());
             if (paymentFromBackend.isPresent()) {

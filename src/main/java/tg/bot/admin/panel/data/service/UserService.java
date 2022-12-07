@@ -1,12 +1,13 @@
 package tg.bot.admin.panel.data.service;
 
 import java.util.Optional;
-import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import tg.bot.admin.panel.data.entity.User;
+import tg.bot.core.domain.User;
+import tg.bot.core.repository.UserRepository;
 
 @Service
 public class UserService {
@@ -18,7 +19,7 @@ public class UserService {
         this.repository = repository;
     }
 
-    public Optional<User> get(UUID id) {
+    public Optional<User> get(Long id) {
         return repository.findById(id);
     }
 
@@ -26,7 +27,7 @@ public class UserService {
         return repository.save(entity);
     }
 
-    public void delete(UUID id) {
+    public void delete(Long id) {
         repository.deleteById(id);
     }
 

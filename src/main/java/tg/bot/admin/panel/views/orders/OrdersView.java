@@ -22,13 +22,16 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import tg.bot.admin.panel.data.entity.Order;
+import tg.bot.admin.panel.views.util.ColumnNames;
+import tg.bot.admin.panel.views.util.DefaultValueProviders;
+import tg.bot.core.domain.Order;
 import tg.bot.admin.panel.data.service.OrderService;
 import tg.bot.admin.panel.views.MainLayout;
+import tg.bot.core.domain.base.AbstractAuditableEntity;
 
 @PageTitle("Orders")
 @Route(value = "orders/:orderID?/:action?(edit)", layout = MainLayout.class)
@@ -69,11 +72,21 @@ public class OrdersView extends Div implements BeforeEnterObserver {
         add(splitLayout);
 
         // Configure Grid
-        grid.addColumn("sellingItem").setAutoWidth(true);
-        grid.addColumn("orderedBy").setAutoWidth(true);
-        grid.addColumn("status").setAutoWidth(true);
-        grid.addColumn("payment").setAutoWidth(true);
-        grid.addColumn("dateCreated").setAutoWidth(true);
+        grid.addColumn(c -> DefaultValueProviders.generateSellingItemName(c.getSellingItem()))
+                .setHeader(ColumnNames.SELLING_ITEM)
+                .setAutoWidth(true);
+        grid.addColumn(c -> c.getUser().getName())
+                .setHeader(ColumnNames.ORDERED_BY)
+                .setAutoWidth(true);
+        grid.addColumn(c -> c.getStatus().friendlyName())
+                .setHeader(ColumnNames.STATUS)
+                .setAutoWidth(true);
+        grid.addColumn(c -> DefaultValueProviders.generatePaymentAmount(c.getPayment()))
+                .setHeader(ColumnNames.PAYMENT)
+                .setAutoWidth(true);
+        grid.addColumn(AbstractAuditableEntity::getDateCreated)
+                .setHeader(ColumnNames.DATE_CREATED)
+                .setAutoWidth(true);
         grid.setItems(query -> orderService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream());
@@ -123,7 +136,7 @@ public class OrdersView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UUID> orderId = event.getRouteParameters().get(ORDER_ID).map(UUID::fromString);
+        Optional<Long> orderId = event.getRouteParameters().get(ORDER_ID).map(Long::parseLong);
         if (orderId.isPresent()) {
             Optional<Order> orderFromBackend = orderService.get(orderId.get());
             if (orderFromBackend.isPresent()) {

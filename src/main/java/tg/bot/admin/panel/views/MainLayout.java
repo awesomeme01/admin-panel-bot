@@ -21,7 +21,8 @@ import java.io.ByteArrayInputStream;
 import java.util.Optional;
 import tg.bot.admin.panel.components.appnav.AppNav;
 import tg.bot.admin.panel.components.appnav.AppNavItem;
-import tg.bot.admin.panel.data.entity.User;
+import tg.bot.admin.panel.views.products.ProductsView;
+import tg.bot.core.domain.User;
 import tg.bot.admin.panel.security.AuthenticatedUser;
 import tg.bot.admin.panel.views.booking.BookingView;
 import tg.bot.admin.panel.views.brands.BrandsView;
@@ -34,7 +35,6 @@ import tg.bot.admin.panel.views.orders.OrdersView;
 import tg.bot.admin.panel.views.payments.PaymentsView;
 import tg.bot.admin.panel.views.principal.PrincipalView;
 import tg.bot.admin.panel.views.principalrole.PrincipalRoleView;
-import tg.bot.admin.panel.views.products.ProductsView;
 import tg.bot.admin.panel.views.sellingitem.SellingItemView;
 
 /**

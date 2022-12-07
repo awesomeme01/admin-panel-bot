@@ -21,13 +21,15 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.UUID;
 import javax.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import tg.bot.admin.panel.data.entity.Booking;
+import tg.bot.admin.panel.views.util.ColumnNames;
+import tg.bot.admin.panel.views.util.DefaultValueProviders;
+import tg.bot.core.domain.Booking;
 import tg.bot.admin.panel.data.service.BookingService;
 import tg.bot.admin.panel.views.MainLayout;
+import tg.bot.core.domain.base.AbstractAuditableEntity;
 
 @PageTitle("Booking")
 @Route(value = "booking/:bookingID?/:action?(edit)", layout = MainLayout.class)
@@ -66,9 +68,17 @@ public class BookingView extends Div implements BeforeEnterObserver {
         add(splitLayout);
 
         // Configure Grid
-        grid.addColumn("user").setAutoWidth(true);
-        grid.addColumn("sellingItem").setAutoWidth(true);
-        grid.addColumn("dateCreated").setAutoWidth(true);
+        grid.addColumn(Booking::getId)
+                .setAutoWidth(true)
+                .setHeader(ColumnNames.ID);
+        grid.addColumn(b -> b.getUser().getName())
+                .setAutoWidth(true)
+                .setHeader(ColumnNames.USER);
+        grid.addColumn(b -> DefaultValueProviders.generateSellingItemName(b.getSellingItem()))
+                .setAutoWidth(true);
+        grid.addColumn(AbstractAuditableEntity::getDateCreated)
+                .setAutoWidth(true)
+                .setHeader(ColumnNames.DATE_CREATED);
         grid.setItems(query -> bookingService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream());
@@ -116,7 +126,7 @@ public class BookingView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UUID> bookingId = event.getRouteParameters().get(BOOKING_ID).map(UUID::fromString);
+        Optional<Long> bookingId = event.getRouteParameters().get(BOOKING_ID).map(Long::parseLong);
         if (bookingId.isPresent()) {
             Optional<Booking> bookingFromBackend = bookingService.get(bookingId.get());
             if (bookingFromBackend.isPresent()) {

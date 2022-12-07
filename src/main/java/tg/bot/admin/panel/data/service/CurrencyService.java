@@ -1,12 +1,13 @@
 package tg.bot.admin.panel.data.service;
 
 import java.util.Optional;
-import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import tg.bot.admin.panel.data.entity.Currency;
+import tg.bot.core.domain.Currency;
+import tg.bot.core.repository.CurrencyRepository;
 
 @Service
 public class CurrencyService {
@@ -18,7 +19,7 @@ public class CurrencyService {
         this.repository = repository;
     }
 
-    public Optional<Currency> get(UUID id) {
+    public Optional<Currency> get(Long id) {
         return repository.findById(id);
     }
 
@@ -26,7 +27,7 @@ public class CurrencyService {
         return repository.save(entity);
     }
 
-    public void delete(UUID id) {
+    public void delete(Long id) {
         repository.deleteById(id);
     }
 

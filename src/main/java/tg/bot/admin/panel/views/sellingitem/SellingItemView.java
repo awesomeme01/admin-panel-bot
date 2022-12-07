@@ -1,5 +1,6 @@
 package tg.bot.admin.panel.views.sellingitem;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -30,13 +31,15 @@ import java.io.ByteArrayOutputStream;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Optional;
-import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import tg.bot.admin.panel.data.entity.SellingItem;
+import tg.bot.admin.panel.views.util.ColumnNames;
+import tg.bot.core.domain.SellingItem;
 import tg.bot.admin.panel.data.service.SellingItemService;
 import tg.bot.admin.panel.views.MainLayout;
+import tg.bot.core.domain.base.AbstractAuditableEntity;
 
 @PageTitle("Selling Item")
 @Route(value = "selling-item/:sellingItemID?/:action?(edit)", layout = MainLayout.class)
@@ -89,11 +92,22 @@ public class SellingItemView extends Div implements BeforeEnterObserver {
                 });
         grid.addColumn(pictureRenderer).setHeader("Picture").setWidth("68px").setFlexGrow(0);
 
-        grid.addColumn("product").setAutoWidth(true);
-        grid.addColumn("bookedBy").setAutoWidth(true);
-        grid.addColumn("weight").setAutoWidth(true);
-        grid.addColumn("price").setAutoWidth(true);
-        grid.addColumn("dateCreated").setAutoWidth(true);
+        grid.addColumn(p -> p.getCandy().getName())
+                .setHeader(ColumnNames.NAME)
+                .setAutoWidth(true);
+        grid.addColumn(p -> p.getBooking().getUser().getName())
+                .setHeader(ColumnNames.BOOKED_BY)
+                .setAutoWidth(true);
+        grid.addColumn(SellingItem::getWeight)
+                .setHeader(ColumnNames.WEIGHT)
+                .setAutoWidth(true);
+        grid.addColumn(SellingItem::getPrice)
+                .setHeader(ColumnNames.PRICE)
+                .setAutoWidth(true);
+        grid.addColumn(AbstractAuditableEntity::getDateCreated)
+                .setHeader(ColumnNames.DATE_CREATED)
+                .setAutoWidth(true);
+
         grid.setItems(query -> sellingItemService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream());
@@ -145,7 +159,7 @@ public class SellingItemView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UUID> sellingItemId = event.getRouteParameters().get(SELLINGITEM_ID).map(UUID::fromString);
+        Optional<Long> sellingItemId = event.getRouteParameters().get(SELLINGITEM_ID).map(Long::parseLong);
         if (sellingItemId.isPresent()) {
             Optional<SellingItem> sellingItemFromBackend = sellingItemService.get(sellingItemId.get());
             if (sellingItemFromBackend.isPresent()) {
@@ -177,7 +191,7 @@ public class SellingItemView extends Div implements BeforeEnterObserver {
         picture = new Upload();
         picture.getStyle().set("box-sizing", "border-box");
         picture.getElement().appendChild(picturePreview.getElement());
-        product = new TextField("Product");
+        product = new TextField("Candy");
         bookedBy = new TextField("Booked By");
         weight = new TextField("Weight");
         price = new TextField("Price");

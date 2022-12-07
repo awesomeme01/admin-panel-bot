@@ -22,15 +22,17 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import tg.bot.admin.panel.data.entity.Product;
-import tg.bot.admin.panel.data.service.ProductService;
+import tg.bot.admin.panel.views.util.ColumnNames;
+import tg.bot.core.domain.Candy;
+import tg.bot.admin.panel.data.service.CandyService;
 import tg.bot.admin.panel.views.MainLayout;
+import tg.bot.core.domain.base.AbstractAuditableEntity;
 
-@PageTitle("Products")
+@PageTitle("Candys")
 @Route(value = "products/:productID?/:action?(edit)", layout = MainLayout.class)
 @RolesAllowed("ADMIN")
 public class ProductsView extends Div implements BeforeEnterObserver {
@@ -38,7 +40,7 @@ public class ProductsView extends Div implements BeforeEnterObserver {
     private final String PRODUCT_ID = "productID";
     private final String PRODUCT_EDIT_ROUTE_TEMPLATE = "products/%s/edit";
 
-    private final Grid<Product> grid = new Grid<>(Product.class, false);
+    private final Grid<Candy> grid = new Grid<>(Candy.class, false);
 
     private TextField name;
     private TextField code;
@@ -50,14 +52,14 @@ public class ProductsView extends Div implements BeforeEnterObserver {
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Save");
 
-    private final BeanValidationBinder<Product> binder;
+    private final BeanValidationBinder<Candy> binder;
 
-    private Product product;
+    private Candy product;
 
-    private final ProductService productService;
+    private final CandyService productService;
 
     @Autowired
-    public ProductsView(ProductService productService) {
+    public ProductsView(CandyService productService) {
         this.productService = productService;
         addClassNames("products-view");
 
@@ -70,12 +72,25 @@ public class ProductsView extends Div implements BeforeEnterObserver {
         add(splitLayout);
 
         // Configure Grid
-        grid.addColumn("name").setAutoWidth(true);
-        grid.addColumn("code").setAutoWidth(true);
-        grid.addColumn("brand").setAutoWidth(true);
-        grid.addColumn("description").setAutoWidth(true);
-        grid.addColumn("price").setAutoWidth(true);
-        grid.addColumn("dateCreated").setAutoWidth(true);
+        grid.addColumn(Candy::getName)
+                .setHeader(ColumnNames.NAME)
+                .setAutoWidth(true);
+        grid.addColumn(Candy::getCode)
+                .setHeader(ColumnNames.CODE)
+                .setAutoWidth(true);
+        grid.addColumn(c -> c.getBrand().getName())
+                .setHeader(ColumnNames.BRAND)
+                .setAutoWidth(true);
+        grid.addColumn(Candy::getDescription)
+                .setHeader(ColumnNames.DESCRIPTION)
+                .setAutoWidth(true);
+        grid.addColumn(Candy::getPricePerGram)
+                .setHeader(ColumnNames.PRICE_PER_GRAM)
+                .setAutoWidth(true);
+        grid.addColumn(AbstractAuditableEntity::getDateCreated)
+                .setHeader(ColumnNames.DATE_CREATED)
+                .setAutoWidth(true);
+
         grid.setItems(query -> productService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream());
@@ -92,7 +107,7 @@ public class ProductsView extends Div implements BeforeEnterObserver {
         });
 
         // Configure Form
-        binder = new BeanValidationBinder<>(Product.class);
+        binder = new BeanValidationBinder<>(Candy.class);
 
         // Bind fields. This is where you'd define e.g. validation rules
         binder.forField(price).withConverter(new StringToIntegerConverter("Only numbers are allowed")).bind("price");
@@ -107,13 +122,13 @@ public class ProductsView extends Div implements BeforeEnterObserver {
         save.addClickListener(e -> {
             try {
                 if (this.product == null) {
-                    this.product = new Product();
+                    this.product = new Candy();
                 }
                 binder.writeBean(this.product);
                 productService.update(this.product);
                 clearForm();
                 refreshGrid();
-                Notification.show("Product details stored.");
+                Notification.show("Candy details stored.");
                 UI.getCurrent().navigate(ProductsView.class);
             } catch (ValidationException validationException) {
                 Notification.show("An exception happened while trying to store the product details.");
@@ -124,9 +139,9 @@ public class ProductsView extends Div implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        Optional<UUID> productId = event.getRouteParameters().get(PRODUCT_ID).map(UUID::fromString);
+        Optional<Long> productId = event.getRouteParameters().get(PRODUCT_ID).map(Long::parseLong);
         if (productId.isPresent()) {
-            Optional<Product> productFromBackend = productService.get(productId.get());
+            Optional<Candy> productFromBackend = productService.get(productId.get());
             if (productFromBackend.isPresent()) {
                 populateForm(productFromBackend.get());
             } else {
@@ -189,7 +204,7 @@ public class ProductsView extends Div implements BeforeEnterObserver {
         populateForm(null);
     }
 
-    private void populateForm(Product value) {
+    private void populateForm(Candy value) {
         this.product = value;
         binder.readBean(this.product);
 
